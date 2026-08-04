@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 import "./bootstrap-grid.min.css";
 import "./reset.css";
@@ -17,21 +18,21 @@ export default function RootLayout({ children }) {
       <body>
         <header>
           <h1 className="logo">
-            <a href="">Minimal Portfolio Theme</a>
+            <Link href="/">Minimal Portfolio Theme</Link>
           </h1>
           <nav>
             <ul>
               <li>
-                <a href="index.html">Home</a>
+                <Link href="/">Home</Link>
               </li>
               <li>
-                <a href="portfolio.html">Portfolio</a>
+                <Link href="/portfolio">Portfolio</Link>
               </li>
               <li>
-                <a href="about.html">About</a>
+                <Link href="/about">About</Link>
               </li>
               <li>
-                <a href="contact.html">Contact</a>
+                <Link href="/contact">Contact</Link>
               </li>
             </ul>
           </nav>
@@ -48,7 +49,7 @@ export default function RootLayout({ children }) {
               your project description and available budget.
             </p>
             <p>
-              <a href="">Get a free quote &rarr;</a>
+              <Link href="">Get a free quote &rarr;</Link>
             </p>
           </div>
           <div className="copyright">
@@ -57,23 +58,23 @@ export default function RootLayout({ children }) {
             <p>
               (+40) 744122222
               <br />
-              <a href="mailto:hello@adipurdila.com">hello@adipurdila.com</a>
+              <Link href="mailto:hello@adipurdila.com">hello@adipurdila.com</Link>
             </p>
             <ul className="social_links">
               <li>
-                <a href="">
+                <Link href="">
                   <Image src="/images/twitter.png" width={32} height={32} alt="twitter" />
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="">
+                <Link href="">
                   <Image src="/images/facebook.png" width={32} height={32} alt="facebook" />
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="">
+                <Link href="">
                   <Image src="/images/dribble.png" width={32} height={32} alt="dribble" />
-                </a>
+                </Link>
               </li>
             </ul>
             <hr />

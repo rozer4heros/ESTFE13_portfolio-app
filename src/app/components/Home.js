@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Home({ data }) {
   return (
@@ -6,7 +7,7 @@ export default function Home({ data }) {
       <div className="row intro">
         <div className="col-md-4">
           <div className="contents shadow">
-            <h2 className="heading2">I’m alikerock</h2>
+            <h2 className="heading2">I&apos;m alikerock</h2>
           </div>
         </div>
         <div className="col-md-4">
@@ -16,7 +17,7 @@ export default function Home({ data }) {
         </div>
         <div className="col-md-4">
           <div className="contents shadow">
-            <h2 className="heading2">I’m available for freelance projects</h2>
+            <h2 className="heading2">I&apos;m available for freelance projects</h2>
           </div>
         </div>
       </div>
@@ -28,11 +29,11 @@ export default function Home({ data }) {
               <div className="hover_contents">
                 <div className="list_info">
                   <h3>
-                    <a href="">{item.title}</a>
+                    <Link href="">{item.title}</Link>
                     <Image src="/images/portfolio_list_arrow.png" width={6} height={8} alt="list arrow" />
                   </h3>
                   <p>
-                    <a href="">Click to see project</a>
+                    <Link href="">Click to see project</Link>
                   </p>
                 </div>
               </div>
@@ -41,9 +42,9 @@ export default function Home({ data }) {
         ))}
       </div>
       <p className="porfolio_readmore">
-        <a href="" className="primary-btn">
+        <Link href="" className="primary-btn">
           See my full portfolio
-        </a>
+        </Link>
       </p>
     </>
   );
