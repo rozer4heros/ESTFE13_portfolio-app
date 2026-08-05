@@ -34,7 +34,7 @@ export default function Contact() {
       <div className="htmlForm">
         <h3 className="heading6">Need a Quote?</h3>
         <p>Use the htmlForm below. All fields are required.</p>
-        <div className="contact_htmlForm">
+        <div className="contact_form">
           <form action="">
             <p className="field">
               <label htmlFor="username">Full Name:</label>
