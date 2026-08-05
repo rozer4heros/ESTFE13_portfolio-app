@@ -6,9 +6,25 @@ export default async function PortfolioSingle({ params }) {
   const { data, error } = await supabase.from("portfolio").select().eq("id", id).limit(1).single();
   if (error) {
     console.error(error);
-  } else {
-    console.log(data);
   }
+
+  // 이전 글 조회
+  const { data: prev } = await supabase
+    .from("portfolio")
+    .select()
+    .lt("id", id)
+    .order("id", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  // 다음 글 조회
+  const { data: next } = await supabase
+    .from("portfolio")
+    .select()
+    .gt("id", id)
+    .order("id", { ascending: true })
+    .limit(1)
+    .maybeSingle();
 
   return (
     <div className="portoflio-single">
@@ -35,16 +51,26 @@ export default async function PortfolioSingle({ params }) {
               <p>{data?.review ?? ""}</p>
               <small>{data?.reviewer ? `- ${data.reviewer} -` : ""}</small>
             </blockquote>
-            {/*
             <p className="nav">
-              <a href="" className="secondary-btn">
-                &larr; Previous Project
-              </a>
-              <a href="" className="secondary-btn">
-                Next Project &rarr;
-              </a>
+              {prev ? (
+                <a href={`/portfolio/${prev.id}`} className="secondary-btn">
+                  &larr; {prev.title}
+                </a>
+              ) : (
+                <button className="secondary-btn" disabled>
+                  처음 글입니다.
+                </button>
+              )}
+              {next ? (
+                <a href={`/portfolio/${next.id}`} className="secondary-btn">
+                  {next.title} &rarr;
+                </a>
+              ) : (
+                <button className="secondary-btn" disabled>
+                  마지막 글입니다.
+                </button>
+              )}
             </p>
-            */}
           </div>
         </div>
       </div>
