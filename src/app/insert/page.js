@@ -73,6 +73,7 @@ export default function Insert() {
               onChange={handleChange}
             />
           </p>
+          <hr />
           <p className="field">
             <label htmlFor="url">Project URL:</label>
             <input type="url" name="url" id="url" placeholder="Project URL" onChange={handleChange} />

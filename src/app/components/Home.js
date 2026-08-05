@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function Home({ data }) {
   return (
-    <>
+    <div className="latest_portfolio">
       <div className="row intro">
         <div className="col-md-4">
           <div className="contents shadow">
@@ -29,11 +29,11 @@ export default function Home({ data }) {
               <div className="hover_contents">
                 <div className="list_info">
                   <h3>
-                    <Link href="">{item.title}</Link>
+                    <Link href={`/portfolio/${item.id}`}>{item.title}</Link>
                     <Image src="/images/portfolio_list_arrow.png" width={6} height={8} alt="list arrow" />
                   </h3>
                   <p>
-                    <Link href="">Click to see project</Link>
+                    <Link href={`/portfolio/${item.id}`}>Click to see project</Link>
                   </p>
                 </div>
               </div>
@@ -46,6 +46,6 @@ export default function Home({ data }) {
           See my full portfolio
         </Link>
       </p>
-    </>
+    </div>
   );
 }
