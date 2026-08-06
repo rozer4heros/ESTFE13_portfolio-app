@@ -12,6 +12,8 @@ export const metadata = {
   description: "The Most Fantastic and Flawless Portfolio in the World",
 };
 
+import LoginStatus from "./components/LoginStatus";
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
@@ -33,6 +35,9 @@ export default function RootLayout({ children }) {
               </li>
               <li>
                 <Link href="/contact">Contact</Link>
+              </li>
+              <li>
+                <LoginStatus />
               </li>
             </ul>
           </nav>
