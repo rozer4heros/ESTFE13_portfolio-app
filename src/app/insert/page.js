@@ -40,27 +40,36 @@ export default function Insert() {
 
   async function insertData(e) {
     e.preventDefault();
-    const { error } = await supabase.from("portfolio").insert(formData);
+
+    let thumbnailPath = null;
+    if (thumbnail) {
+      thumbnailPath = await uploadThumbnail(thumbnail);
+      if (!thumbnailPath) {
+        alert("Failed to upload thumbnail");
+        return;
+      }
+    }
+
+    const { error } = await supabase.from("portfolio").insert({ ...formData, thumbnail: thumbnailPath });
     if (error) {
       console.error(error);
+      await supabase.storage.from("portfolio").remove(thumbnailPath);
     } else {
       console.log("Data insertion successful");
       router.push("/");
     }
-
-    if (thumbnail) {
-      await uploadThumbnail(thumbnail);
-    }
   }
   async function uploadThumbnail(file) {
     const ext = file.name.split(".").pop();
-    const fileName = `${crypto.randomUUID()}.${ext}`;
+    const filePath = `thumbnail/${crypto.randomUUID()}.${ext}`;
 
-    const { data, error } = await supabase.storage.from("portfolio").upload(`thumbnail/${fileName}`, file);
+    const { error } = await supabase.storage.from("portfolio").upload(filePath, file);
     if (error) {
-      console.error("파일 업로드 실패: " + error);
+      console.error("썸네일 업로드 실패: " + error);
+      return null;
     } else {
-      console.log("파일 업로드 성공");
+      console.log("썸네일 업로드 성공");
+      return filePath;
     }
   }
 
@@ -94,7 +103,7 @@ export default function Insert() {
       [name]: value,
     });
   };
-  const handleFileChange = e => {
+  const handleThumbnailChange = e => {
     setThumbnail(e.target.files[0]);
   };
 
@@ -127,7 +136,6 @@ export default function Insert() {
       </div>
     );
   }
-
   return (
     <div className="about_content shadow">
       <h2>Input Portfolio Data</h2>
@@ -156,8 +164,8 @@ export default function Insert() {
               name="thumbnail"
               id="thumbnail"
               accept="image/"
-              required={false}
-              onChange={handleFileChange}
+              required
+              onChange={handleThumbnailChange}
             />
           </p>
           <hr />
@@ -182,7 +190,7 @@ export default function Insert() {
           </p>
           <p className="field">
             <label htmlFor="rep1_img">Rep. Image 1</label>
-            <input type="file" name="rep1_img" id="rep1_img" accept="image/" onChange={handleFileChange} />
+            <input type="file" name="rep1_img" id="rep1_img" accept="image/" onChange={handleThumbnailChange} />
           </p>
           <p className="field">
             <label htmlFor="rep1_desc">Rep.1 Description</label>
@@ -192,11 +200,12 @@ export default function Insert() {
               id="rep1_desc"
               placeholder="Representative Image 1 Description"
               onChange={handleChange}
+              disabled
             />
           </p>
           <p className="field">
             <label htmlFor="rep2_img">Rep. Image 2</label>
-            <input type="file" name="rep2_img" id="rep2_img" accept="image/" onChange={handleFileChange} />
+            <input type="file" name="rep2_img" id="rep2_img" accept="image/" onChange={handleThumbnailChange} />
           </p>
           <p className="field">
             <label htmlFor="rep2_desc">Rep.2 Description</label>
@@ -206,6 +215,7 @@ export default function Insert() {
               id="rep2_desc"
               placeholder="Representative Image 2 Description"
               onChange={handleChange}
+              disabled
             />
           </p>
           <p className="submit">
