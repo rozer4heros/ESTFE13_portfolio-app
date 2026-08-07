@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { createClient } from "@/utils/supabase/client";
@@ -9,25 +9,29 @@ export default function Insert() {
   const supabase = createClient();
   const router = useRouter();
 
-  const [formData, setFormData] = useState({
+  const INITIAL_PORTFOLIO = {
     title: "",
     content: "",
-    thumbnail: "",
     url: "",
     reviewer: "",
     review: "",
-    rep1_img: "",
-    rep1_desc: "",
-    rep2_img: "",
-    rep2_desc: "",
-  });
+  };
+  const createInitialImages = () => [
+    { file: null, description: "", displayOrder: 1 },
+    { file: null, description: "", displayOrder: 2 },
+  ];
 
-  const [thumbnail, setThumbnail] = useState(null);
   const [user, setUser] = useState(null);
   const [authForm, setAuthform] = useState({
     email: "",
     password: "",
   });
+
+  const [portfolio, setPortfolio] = useState(INITIAL_PORTFOLIO);
+  const [thumbnail, setThumbnail] = useState(null);
+  const [portfolioImages, setPortfolioImages] = useState(createInitialImages);
+
+  const fileRef = useRef({ thumbnail: null, image1: null, image2: null });
 
   useEffect(() => {
     (async () => {
@@ -40,7 +44,6 @@ export default function Insert() {
 
   async function insertData(e) {
     e.preventDefault();
-
     let thumbnailPath = null;
     if (thumbnail) {
       thumbnailPath = await uploadThumbnail(thumbnail);
@@ -50,7 +53,7 @@ export default function Insert() {
       }
     }
 
-    const { error } = await supabase.from("portfolio").insert({ ...formData, thumbnail: thumbnailPath });
+    const { error } = await supabase.from("portfolio").insert({ ...portfolio, thumbnail: thumbnailPath });
     if (error) {
       console.error(error);
       await supabase.storage.from("portfolio").remove(thumbnailPath);
@@ -75,7 +78,6 @@ export default function Insert() {
 
   const handleAuthChange = e => {
     const { name, value } = e.target;
-
     setAuthform({
       ...authForm,
       [name]: value,
@@ -95,16 +97,42 @@ export default function Insert() {
       router.refresh();
     }
   };
-  const handleChange = e => {
-    const { name, value } = e.target;
 
-    setFormData({
-      ...formData,
+  const handlePortfolioChange = e => {
+    const { name, value } = e.target;
+    setPortfolio({
+      ...portfolio,
       [name]: value,
     });
   };
-  const handleThumbnailChange = e => {
+  const handleThumbnailFileChange = e => {
     setThumbnail(e.target.files[0]);
+  };
+  const handlePortfolioFileChange = index => e => {
+    const selectedFile = e.target.files?.[0] ?? null;
+    setPortfolioImages(prev =>
+      prev.map((img, idx) =>
+        index === idx
+          ? {
+              ...img,
+              file: selectedFile,
+            }
+          : img,
+      ),
+    );
+  };
+  const handlePortfolioDescChange = index => e => {
+    const { value } = e.target;
+    setPortfolioImages(prev =>
+      prev.map((img, idx) =>
+        index === idx
+          ? {
+              ...img,
+              description: value,
+            }
+          : img,
+      ),
+    );
   };
 
   if (!user) {
@@ -143,7 +171,14 @@ export default function Insert() {
         <form onSubmit={insertData}>
           <p className="field">
             <label htmlFor="title">Project Name</label>
-            <input type="text" name="title" id="title" placeholder="Project Name" required onChange={handleChange} />
+            <input
+              type="text"
+              name="title"
+              id="title"
+              placeholder="Project Name"
+              required
+              onChange={handlePortfolioChange}
+            />
           </p>
           <p className="field">
             <label htmlFor="content">Project Description</label>
@@ -154,7 +189,7 @@ export default function Insert() {
               rows="10"
               placeholder="Project Description"
               required
-              onChange={handleChange}
+              onChange={handlePortfolioChange}
             ></textarea>
           </p>
           <p className="field">
@@ -165,17 +200,24 @@ export default function Insert() {
               id="thumbnail"
               accept="image/"
               required
-              onChange={handleThumbnailChange}
+              onChange={handleThumbnailFileChange}
+              ref={fileRef.current.thumbnail}
             />
           </p>
           <hr />
           <p className="field">
             <label htmlFor="url">Project URL</label>
-            <input type="url" name="url" id="url" placeholder="Project URL" onChange={handleChange} />
+            <input type="url" name="url" id="url" placeholder="Project URL" onChange={handlePortfolioChange} />
           </p>
           <p className="field">
             <label htmlFor="reviewer">Project Reviewer</label>
-            <input type="text" name="reviewer" id="reviewer" placeholder="Project Reviewer" onChange={handleChange} />
+            <input
+              type="text"
+              name="reviewer"
+              id="reviewer"
+              placeholder="Project Reviewer"
+              onChange={handlePortfolioChange}
+            />
           </p>
           <p className="field">
             <label htmlFor="review">Project Review</label>
@@ -185,12 +227,20 @@ export default function Insert() {
               cols="30"
               rows="10"
               placeholder="Project Review"
-              onChange={handleChange}
+              onChange={handlePortfolioChange}
             ></textarea>
           </p>
+          <hr />
           <p className="field">
             <label htmlFor="rep1_img">Rep. Image 1</label>
-            <input type="file" name="rep1_img" id="rep1_img" accept="image/" onChange={handleThumbnailChange} />
+            <input
+              type="file"
+              name="rep1_img"
+              id="rep1_img"
+              accept="image/"
+              onChange={handlePortfolioFileChange(0)}
+              ref={fileRef.current.image1}
+            />
           </p>
           <p className="field">
             <label htmlFor="rep1_desc">Rep.1 Description</label>
@@ -199,13 +249,19 @@ export default function Insert() {
               name="rep1_desc"
               id="rep1_desc"
               placeholder="Representative Image 1 Description"
-              onChange={handleChange}
-              disabled
+              onChange={handlePortfolioDescChange(0)}
             />
           </p>
           <p className="field">
             <label htmlFor="rep2_img">Rep. Image 2</label>
-            <input type="file" name="rep2_img" id="rep2_img" accept="image/" onChange={handleThumbnailChange} />
+            <input
+              type="file"
+              name="rep2_img"
+              id="rep2_img"
+              accept="image/"
+              onChange={handlePortfolioFileChange(1)}
+              ref={fileRef.current.image2}
+            />
           </p>
           <p className="field">
             <label htmlFor="rep2_desc">Rep.2 Description</label>
@@ -214,8 +270,7 @@ export default function Insert() {
               name="rep2_desc"
               id="rep2_desc"
               placeholder="Representative Image 2 Description"
-              onChange={handleChange}
-              disabled
+              onChange={handlePortfolioDescChange(1)}
             />
           </p>
           <p className="submit">
