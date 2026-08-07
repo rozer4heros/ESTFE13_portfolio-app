@@ -1,7 +1,21 @@
+import { createClient } from "@/utils/supabase/client";
+
 import Image from "next/image";
 import Link from "next/link";
 
 export default function Home({ data }) {
+  const supabase = createClient();
+
+  const getPublicUrl = path => {
+    if (!path) return null;
+    const { data: publicUrlData, error } = supabase.storage.from("portfolio").getPublicUrl(path);
+    if (error) {
+      console.warn("Failed to load " + path);
+      return null;
+    }
+    return publicUrlData.publicUrl;
+  };
+
   return (
     <div className="latest_portfolio">
       <div className="row intro">
@@ -25,7 +39,7 @@ export default function Home({ data }) {
         {data.map(item => (
           <div key={item.id} className="col-md-4">
             <div className="contents shadow">
-              {/* <img src="images/latest_portfolio_01.jpg" alt="latest_portfolio_01" /> */}
+              {item.thumbnail && <Image src={getPublicUrl(item.thumbnail)} width={364} height={209} alt={item.title} />}
               <div className="hover_contents">
                 <div className="list_info">
                   <h3>
