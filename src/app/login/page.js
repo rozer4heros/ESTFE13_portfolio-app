@@ -31,8 +31,19 @@ export default function Login({}) {
     }
   };
   const signInWithGoogle = async () => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+    if (error) {
+      console.error("로그인 실패", error.message);
+    }
+  };
+  const signInWithKakao = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "kakao",
       options: {
         redirectTo: window.location.origin,
       },
@@ -69,6 +80,7 @@ export default function Login({}) {
         <hr />
       </div>
       <button onClick={signInWithGoogle}>구글로 로그인</button>
+      <button onClick={signInWithKakao}>카카오로 로그인</button>
     </div>
   );
 }
