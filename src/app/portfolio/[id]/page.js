@@ -1,9 +1,16 @@
 import { createClient } from "@/utils/supabase/client";
+import Image from "next/image";
 
 export default async function PortfolioSingle({ params }) {
   const supabase = createClient();
   const { id } = await params;
-  const { data, error } = await supabase.from("portfolio").select().eq("id", id).limit(1).single();
+
+  const { data: current, error } = await supabase
+    .from("portfolio")
+    .select("*, portfolio_images(id, image_url, description, display_order)")
+    .eq("id", id)
+    .order("display_order", { referencedTable: "portfolio_images", ascending: true })
+    .single();
   if (error) {
     console.error(error);
   }
@@ -26,30 +33,51 @@ export default async function PortfolioSingle({ params }) {
     .limit(1)
     .maybeSingle();
 
+  const portfolioImages = current.portfolio_images ?? [];
+
+  const getPublicUrl = path => {
+    if (!path) return null;
+    const { data: publicUrlData, error } = supabase.storage.from("portfolio").getPublicUrl(path);
+    if (error) {
+      console.warn("Failed to load " + path);
+      return null;
+    }
+    return publicUrlData.publicUrl;
+  };
+
   return (
     <div className="portoflio-single">
       <div className="row">
         <div className="col-md-8 decription">
-          <div className="contents shadow">
-            {/* <img src="images/portfolio_single_img1.jpg" alt="img1" /> */}
-            <p>{data?.rep1_desc ?? ""}</p>
-          </div>
-          <div className="contents shadow">
-            {/* <img src="images/portfolio_single_img2.jpg" alt="img2" /> */}
-            <p>{data?.rep2_desc ?? ""}</p>
-          </div>
+          {portfolioImages.length > 0 ? (
+            portfolioImages.map((image, idx) => (
+              <div key={idx} className="contents shadow">
+                <Image
+                  src={getPublicUrl(image.image_url)}
+                  alt={image.description}
+                  width={762}
+                  height={504}
+                  style={{ width: "100%", height: "auto" }}
+                  loading="eager"
+                />
+                <p>{image.description}</p>
+              </div>
+            ))
+          ) : (
+            <div className="contents shadow">"대표 이미지가 없습니다."</div>
+          )}
         </div>
         <div className="col-md-4 portfolio_info">
           <div className="contents shadow">
-            <h2>{data?.title ?? "Title"}</h2>
-            <div>{data?.content ?? "Description"}</div>
+            <h2>{current?.title ?? "Title"}</h2>
+            <div>{current?.content ?? "Description"}</div>
             <p className="link">
-              <a href={data?.url ?? ""}>Visit site &rarr;</a>
+              <a href={current?.url ?? ""}>Visit site &rarr;</a>
             </p>
             <hr className="double" />
             <blockquote>
-              <p>{data?.review ?? ""}</p>
-              <small>{data?.reviewer ? `- ${data.reviewer} -` : ""}</small>
+              <p>{current?.review ?? ""}</p>
+              <small>{current?.reviewer ? `- ${current.reviewer} -` : ""}</small>
             </blockquote>
             <p className="nav">
               {prev ? (

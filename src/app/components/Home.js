@@ -47,6 +47,7 @@ export default function Home({ data }) {
                     width={364}
                     height={209}
                     alt={item.title}
+                    loading="eager"
                   />
                 </div>
               )}
