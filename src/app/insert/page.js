@@ -33,6 +33,17 @@ export default function Insert() {
 
   const fileRef = useRef({ thumbnail: null, image1: null, image2: null });
 
+  const resetForm = () => {
+    setPortfolio(INITIAL_PORTFOLIO);
+    setPortfolioImages(createInitialImages());
+    setThumbnail(null);
+    Object.values(fileRef.current).forEach(el => {
+      if (el) {
+        el.value = "";
+      }
+    });
+  };
+
   useEffect(() => {
     (async () => {
       const {
@@ -57,16 +68,22 @@ export default function Insert() {
 
     // portfolio 테이블 저장
     const { data: insertedPortfolio, error } = await supabase
+      .schema("public")
       .from("portfolio")
-      .insert({ ...portfolio, thumbnail: thumbnailPath });
+      .insert({ ...portfolio, thumbnail: thumbnailPath })
+      .select("id")
+      .single();
     if (error) {
       console.error(error);
-      await supabase.storage.from("portfolio").remove(thumbnailPath);
+      await supabase.storage.from("portfolio").remove([thumbnailPath]);
+      alert(`대표 이미지 입력 실패: ${error.message}`);
     } else {
       console.log("Data insertion successful");
-      router.push("/");
-      router.refresh();
+      // router.push("/");
+      // router.refresh();
     }
+    console.log(insertedPortfolio);
+
     const portfolioId = insertedPortfolio.id;
     const imageRows = [];
     const uploadedImagePaths = [];
@@ -100,9 +117,13 @@ export default function Insert() {
         await supabase.from("portfolio").delete().eq("id", portfolioId);
         // thumbnail 파일 삭제
         await supabase.storage.from("portfolio").remove([thumbnailPath]);
-        alert(`대표 이미지 저장 실패: ${error.message}`);
+        alert(`대표 이미지 등록 실패: ${error.message}`);
       }
     }
+
+    // 글 등록 성공시 모든 입력값 초기화
+    alert("글 등록 성공");
+    resetForm();
   }
   async function uploadFile(file, folder = "") {
     const ext = file.name.split(".").pop();
@@ -185,13 +206,22 @@ export default function Insert() {
           <form onSubmit={handleLogin}>
             <p className="field">
               <label htmlFor="email">Email</label>
-              <input type="email" id="email" name="email" placeholder="Email" required onChange={handleAuthChange} />
+              <input
+                type="email"
+                id="email"
+                value={authForm.email}
+                name="email"
+                placeholder="Email"
+                required
+                onChange={handleAuthChange}
+              />
             </p>
             <p className="field">
               <label htmlFor="password">Password</label>
               <input
                 type="password"
                 id="password"
+                value={authForm.password}
                 name="password"
                 placeholder="Password"
                 required
@@ -217,6 +247,7 @@ export default function Insert() {
               type="text"
               name="title"
               id="title"
+              value={portfolio.title}
               placeholder="Project Name"
               required
               onChange={handlePortfolioChange}
@@ -227,6 +258,7 @@ export default function Insert() {
             <textarea
               name="content"
               id="content"
+              value={portfolio.content}
               cols="30"
               rows="10"
               placeholder="Project Description"
@@ -251,7 +283,14 @@ export default function Insert() {
           <hr />
           <p className="field">
             <label htmlFor="url">Project URL</label>
-            <input type="url" name="url" id="url" placeholder="Project URL" onChange={handlePortfolioChange} />
+            <input
+              type="url"
+              name="url"
+              id="url"
+              value={portfolio.url}
+              placeholder="Project URL"
+              onChange={handlePortfolioChange}
+            />
           </p>
           <p className="field">
             <label htmlFor="reviewer">Project Reviewer</label>
@@ -259,6 +298,7 @@ export default function Insert() {
               type="text"
               name="reviewer"
               id="reviewer"
+              value={portfolio.reviewer}
               placeholder="Project Reviewer"
               onChange={handlePortfolioChange}
             />
@@ -268,6 +308,7 @@ export default function Insert() {
             <textarea
               name="review"
               id="review"
+              value={portfolio.review}
               cols="30"
               rows="10"
               placeholder="Project Review"
