@@ -39,7 +39,17 @@ export default function Home({ data }) {
         {data.map(item => (
           <div key={item.id} className="col-md-4">
             <div className="contents shadow">
-              {item.thumbnail && <Image src={getPublicUrl(item.thumbnail)} width={364} height={209} alt={item.title} />}
+              {item.thumbnail && (
+                <div style={{ height: 209 }}>
+                  <Image
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    src={getPublicUrl(item.thumbnail)}
+                    width={364}
+                    height={209}
+                    alt={item.title}
+                  />
+                </div>
+              )}
               <div className="hover_contents">
                 <div className="list_info">
                   <h3>
