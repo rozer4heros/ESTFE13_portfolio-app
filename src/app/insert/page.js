@@ -44,27 +44,69 @@ export default function Insert() {
 
   async function insertData(e) {
     e.preventDefault();
+
+    // 썸네일 업로드
     let thumbnailPath = null;
     if (thumbnail) {
-      thumbnailPath = await uploadThumbnail(thumbnail);
+      thumbnailPath = await uploadFile(thumbnail, "thumbnail");
       if (!thumbnailPath) {
         alert("Failed to upload thumbnail");
         return;
       }
     }
 
-    const { error } = await supabase.from("portfolio").insert({ ...portfolio, thumbnail: thumbnailPath });
+    // portfolio 테이블 저장
+    const { data: insertedPortfolio, error } = await supabase
+      .from("portfolio")
+      .insert({ ...portfolio, thumbnail: thumbnailPath });
     if (error) {
       console.error(error);
       await supabase.storage.from("portfolio").remove(thumbnailPath);
     } else {
       console.log("Data insertion successful");
       router.push("/");
+      router.refresh();
+    }
+    const portfolioId = insertedPortfolio.id;
+    const imageRows = [];
+    const uploadedImagePaths = [];
+
+    // 대표 이미지 업로드
+    for (let image of portfolioImages) {
+      if (!image.file) {
+        continue;
+      }
+      const imageResult = await uploadFile(image.file, "portfolio_images");
+      uploadedImagePaths.push(imageResult);
+
+      imageRows.push({
+        portfolio_id: portfolioId,
+        image_url: imageResult,
+        description: image.description,
+        display_order: image.displayOrder,
+      });
+    }
+
+    // portfolio_images 테이블 저장
+    if (imageRows.length > 0) {
+      const { error } = await supabase.from("portfolio_images").insert(imageRows);
+      if (error) {
+        console.error("대표 이미지 등록 실패: ", error);
+        // 버킷에 저장된 대표 이미지 삭제
+        if (uploadedImagePaths.length > 0) {
+          await supabase.storage.from("portfolio").remove(uploadedImagePaths);
+        }
+        // portfolio 테이블에서 글 삭제
+        await supabase.from("portfolio").delete().eq("id", portfolioId);
+        // thumbnail 파일 삭제
+        await supabase.storage.from("portfolio").remove([thumbnailPath]);
+        alert(`대표 이미지 저장 실패: ${error.message}`);
+      }
     }
   }
-  async function uploadThumbnail(file) {
+  async function uploadFile(file, folder = "") {
     const ext = file.name.split(".").pop();
-    const filePath = `thumbnail/${crypto.randomUUID()}.${ext}`;
+    const filePath = `${folder}/${crypto.randomUUID()}.${ext}`;
 
     const { error } = await supabase.storage.from("portfolio").upload(filePath, file);
     if (error) {
@@ -200,8 +242,10 @@ export default function Insert() {
               id="thumbnail"
               accept="image/"
               required
+              ref={element => {
+                fileRef.current.thumbnail = element;
+              }}
               onChange={handleThumbnailFileChange}
-              ref={fileRef.current.thumbnail}
             />
           </p>
           <hr />
@@ -238,8 +282,10 @@ export default function Insert() {
               name="rep1_img"
               id="rep1_img"
               accept="image/"
+              ref={element => {
+                fileRef.current.image1 = element;
+              }}
               onChange={handlePortfolioFileChange(0)}
-              ref={fileRef.current.image1}
             />
           </p>
           <p className="field">
@@ -249,6 +295,7 @@ export default function Insert() {
               name="rep1_desc"
               id="rep1_desc"
               placeholder="Representative Image 1 Description"
+              value={portfolioImages[0].description}
               onChange={handlePortfolioDescChange(0)}
             />
           </p>
@@ -259,8 +306,10 @@ export default function Insert() {
               name="rep2_img"
               id="rep2_img"
               accept="image/"
+              ref={element => {
+                fileRef.current.image2 = element;
+              }}
               onChange={handlePortfolioFileChange(1)}
-              ref={fileRef.current.image2}
             />
           </p>
           <p className="field">
@@ -270,6 +319,7 @@ export default function Insert() {
               name="rep2_desc"
               id="rep2_desc"
               placeholder="Representative Image 2 Description"
+              value={portfolioImages[1].description}
               onChange={handlePortfolioDescChange(1)}
             />
           </p>
