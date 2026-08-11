@@ -3,9 +3,12 @@ import { createClient } from "@/utils/supabase/client";
 import Image from "next/image";
 import Link from "next/link";
 
-export default async function Portfolio({}) {
-  const supabase = createClient();
+export default async function Portfolio({ searchParams }) {
+  const params = await searchParams;
+  const page = Number(params.page ?? 1);
   const PAGE_SIZE = 6;
+
+  const supabase = createClient();
 
   // Portfolio테이블 데이터 총 개수
   const { count, error: countError } = await supabase.from("portfolio").select("*", { count: "exact", head: true });
@@ -21,11 +24,13 @@ export default async function Portfolio({}) {
     pageCountArray.push(i);
   }
 
+  const from = PAGE_SIZE * (Math.min(page, pageCountArray.length) - 1);
+  const to = PAGE_SIZE * Math.min(page, pageCountArray.length) - 1;
   const { data, error } = await supabase
     .from("portfolio")
     .select()
     .order("created_at", { ascending: false })
-    .range(0, 5);
+    .range(from, to);
   if (error) {
     console.error("Connection failed: ", error);
     return <div>Failed to load projects</div>;
