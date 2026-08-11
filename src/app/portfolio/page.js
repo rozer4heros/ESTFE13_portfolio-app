@@ -5,27 +5,28 @@ import Link from "next/link";
 
 export default async function Portfolio({ searchParams }) {
   const params = await searchParams;
-  const page = Number(params.page ?? 1);
   const PAGE_SIZE = 6;
+  const PAGE_GROUP_SIZE = 5;
 
   const supabase = createClient();
 
   // Portfolio테이블 데이터 총 개수
-  const { count, error: countError } = await supabase.from("portfolio").select("*", { count: "exact", head: true });
+  const { count: portfolioCount, error: countError } = await supabase
+    .from("portfolio")
+    .select("*", { count: "exact", head: true });
   if (countError) {
     console.error("Connection failed: ", countError);
     return <div>{countError.message}</div>;
   }
 
   // 페이지네이션 링크 생성
-  const pageCount = Math.ceil(count / PAGE_SIZE);
-  const pageCountArray = [];
-  for (let i = 1; i <= pageCount; i++) {
-    pageCountArray.push(i);
-  }
+  const pageCount = Math.ceil(portfolioCount / PAGE_SIZE);
+  const pageCurrent = Math.min(!!Number(params.page) ? Number(params.page) : 1, pageCount);
+  console.log(pageCurrent);
 
-  const from = PAGE_SIZE * (Math.min(page, pageCountArray.length) - 1);
-  const to = PAGE_SIZE * Math.min(page, pageCountArray.length) - 1;
+  // 링크 클릭 시
+  const from = PAGE_SIZE * (pageCurrent - 1);
+  const to = PAGE_SIZE * pageCurrent - 1;
   const { data, error } = await supabase
     .from("portfolio")
     .select()
@@ -35,6 +36,19 @@ export default async function Portfolio({ searchParams }) {
     console.error("Connection failed: ", error);
     return <div>Failed to load projects</div>;
   }
+
+  // 페이지 그룹 계산
+  const pageGroupCurrent = Math.ceil(pageCurrent / PAGE_GROUP_SIZE);
+  const pageGroupCount = Math.ceil(pageCount / PAGE_GROUP_SIZE);
+  const pageGroupStart = (pageGroupCurrent - 1) * PAGE_GROUP_SIZE + 1;
+  const pageGroupEnd = Math.min(pageGroupCurrent * PAGE_GROUP_SIZE, pageCount);
+
+  const pageCountArray = [];
+  for (let i = pageGroupStart; i <= pageGroupEnd; i++) {
+    pageCountArray.push(i);
+  }
+  const pagePrevGroup = pageGroupStart - 1;
+  const pageNextGroup = pageGroupCurrent * PAGE_GROUP_SIZE + 1;
 
   const getPublicUrl = path => {
     if (!path) return null;
@@ -82,11 +96,21 @@ export default async function Portfolio({ searchParams }) {
         </div>
       </div>
       <div className="pagenation shadow">
+        {pageGroupCurrent > 1 && (
+          <Link href={`?page=${pagePrevGroup}`} className="secondary-btn">
+            &larr;
+          </Link>
+        )}
         {pageCountArray.map(i => (
-          <Link key={i} href={`?page=${i}`} className="secondary-btn active">
+          <Link key={i} href={`?page=${i}`} className={`secondary-btn ${pageCurrent === i ? "active" : ""}`}>
             {i}
           </Link>
         ))}
+        {pageGroupCurrent < pageGroupCount && (
+          <Link href={`?page=${pageNextGroup}`} className="secondary-btn">
+            &rarr;
+          </Link>
+        )}
       </div>
     </>
   );
