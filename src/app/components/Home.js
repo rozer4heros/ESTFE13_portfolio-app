@@ -21,7 +21,7 @@ export default function Home({ data }) {
       <div className="row intro">
         <div className="col-md-4">
           <div className="contents shadow">
-            <h2 className="heading2">I&apos;m alikerock</h2>
+            <h2 className="heading2">I&apos;m Rozer4Heros</h2>
           </div>
         </div>
         <div className="col-md-4">
@@ -67,7 +67,7 @@ export default function Home({ data }) {
         ))}
       </div>
       <p className="porfolio_readmore">
-        <Link href="" className="primary-btn">
+        <Link href="/portfolio" className="primary-btn">
           See my full portfolio
         </Link>
       </p>

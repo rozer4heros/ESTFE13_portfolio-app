@@ -22,7 +22,6 @@ export default async function Portfolio({ searchParams }) {
   // 페이지네이션 링크 생성
   const pageCount = Math.ceil(portfolioCount / PAGE_SIZE);
   const pageCurrent = Math.min(!!Number(params.page) ? Number(params.page) : 1, pageCount);
-  console.log(pageCurrent);
 
   // 링크 클릭 시
   const from = PAGE_SIZE * (pageCurrent - 1);
