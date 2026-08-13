@@ -1,3 +1,13 @@
+export const metadata = {
+  title: "About - Minimal portfolio",
+  description: "The Most Fantastic and Flawless Portfolio in the World",
+  openGraph: {
+    title: "About - Minimal portfolio",
+    description: "The Most Fantastic and Flawless Portfolio in the World",
+    images: [{ url: "/images/logo.png" }],
+  },
+};
+
 export default function About() {
   return (
     <div className="about_content shadow">
